@@ -24,6 +24,17 @@ export const updateCategory = async (id: bigint, description: string) => {
   });
 };
 
+export const getCategoryById = async (id: bigint) => {
+  try {
+    const category = await prisma.category.findUnique({
+      where: { id }
+    });
+    return category;
+  } catch (error) {
+    throw new Error('Erro ao buscar categoria por ID');
+  }
+};
+
 
 //deletar a categoria
 export const deleteCategory = async (id: bigint) => {

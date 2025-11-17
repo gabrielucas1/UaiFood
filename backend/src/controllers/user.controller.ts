@@ -48,7 +48,7 @@ export const handleCreateUser = async (req: Request, res: Response) => {
   }
 };
 
-// Listar todos os usuários
+// 📋 Listar todos os usuários
 export const GetAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await getAllUsers();
@@ -64,7 +64,7 @@ export const GetAllUsers = async (req: Request, res: Response) => {
   }
 };
 
-// Login e geração de token
+// 🔐 Login e geração de token
 export const Login = async (req: Request, res: Response) => {
   try {
     const { phone, password } = loginSchema.parse(req.body);
@@ -86,7 +86,8 @@ export const Login = async (req: Request, res: Response) => {
         type: user.type,
       },
     });
-  } catch {
+  } catch (error) {
+    console.error('Erro no login:', error);
     res.status(500).json({ error: 'Erro ao realizar login' });
   }
 };
