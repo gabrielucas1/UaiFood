@@ -5,8 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -24,6 +23,14 @@ enum PaymentMethod {
   DEBIT
   CREDIT
   PIX
+}
+
+enum OrderStatus {
+  PENDING
+  PREPARING
+  DELIVERING
+  DELIVERED
+  CANCELLED
 }
 
 model User {
@@ -47,7 +54,6 @@ model Address {
   city      String
   state     String
   zipCode   String
-  // order     Order[]
   userId    BigInt   @unique
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
@@ -76,7 +82,7 @@ model Item {
 model Order {
   id            BigInt        @id @default(autoincrement())
   paymentMethod PaymentMethod
-  status        String
+  status        OrderStatus   @default(PENDING)
   total         Decimal
   clientId      BigInt
   client        User          @relation(name: "ClientOrders", fields: [clientId], references: [id])
@@ -84,7 +90,7 @@ model Order {
   createdBy     User          @relation(name: "CreateByOrders", fields: [createdById], references: [id])
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  orderItems     OrderItem[]
+  orderItems    OrderItem[]
 
   @@map("orders")
 }
@@ -98,6 +104,5 @@ model OrderItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // chave primaria composta
-  @@id([orderId,itemId]) // tem como objetivo garantir que um pedido tenha 1 unico item
+  @@id([orderId, itemId])
 }

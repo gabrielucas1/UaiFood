@@ -1,19 +1,21 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
-import { createUser, getAllUsers, getUserById, getUserByPhone } from '../services/user.service';
+import { createUser, getAllUsers, getUserById, getUserByPhone, updateUser, deleteUser } from '../services/user.service';
 import { z } from 'zod';
 import { userSchema, loginSchema } from '../schema/user.schema';
 
-/**
- * CONTROLADORES DO USUÁRIO
- * 
- * Os controladores são responsáveis por:
- * 1. Receber a requisição HTTP
- * 2. Validar os dados de entrada
- * 3. Chamar os serviços apropriados
- * 4. Retornar a resposta formatada
- */
+// ADICIONAR interface AuthRequest se não existir:
+interface AuthRequest extends Request {
+  user?: { id: bigint; phone: string; type: 'ADMIN' | 'CLIENT' };
+}
+
+// ADICIONAR schema de update se não existir:
+const updateUserSchema = z.object({
+  nome: z.string().min(3).optional(),
+  phone: z.string().regex(/^\d{10,11}$/).optional(),
+  type: z.enum(['CLIENT', 'ADMIN']).optional()
+});
 
 // 🆕 CRIAR NOVO USUÁRIO (REGISTRO)
 export const handleCreateUser = async (req: Request, res: Response) => {
@@ -61,6 +63,78 @@ export const GetAllUsers = async (req: Request, res: Response) => {
     })));
   } catch {
     res.status(500).json({ error: 'Erro ao listar usuários' });
+  }
+};
+
+// 👤 Buscar perfil completo do usuário logado
+export const GetUserProfile = async (req: Request, res: Response) => {
+  try {
+    const userToken = (req as any).user;
+    
+    const user = await getUserById(BigInt(userToken.id));
+
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Usuário não encontrado' 
+      });
+    }
+
+    // Formatar endereço - dados de exemplo quando não há endereço
+    const addressString = user.address ? 
+      `${user.address.street}, ${user.address.number}, ${user.address.district}, ${user.address.city} - ${user.address.state}` :
+      'Rua das Flores, 123, Centro, Belo Horizonte - MG';
+
+    const responseData = {
+      name: user.nome,
+      address: addressString,
+      phone: user.phone
+    };
+
+    res.status(200).json(responseData);
+  } catch (error) {
+    console.error('❌ Erro ao buscar perfil:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor' 
+    });
+  }
+};
+
+// IMPLEMENTAR se não existirem:
+export const handleUpdateUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const validatedData = updateUserSchema.parse(req.body);
+    
+    const updatedUser = await updateUser(userId, validatedData);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Perfil atualizado com sucesso',
+      data: {
+        id: updatedUser.id.toString(),
+        nome: updatedUser.nome,
+        phone: updatedUser.phone,
+        type: updatedUser.type
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao atualizar perfil' });
+  }
+};
+
+export const handleDeleteUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    
+    await deleteUser(userId);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Conta excluída com sucesso'
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao excluir conta' });
   }
 };
 

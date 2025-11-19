@@ -307,6 +307,6 @@ router.put('/', handleUpdateAddress);
  *                   type: string
  *                   example: 'Existem pedidos vinculados a este endereço'
  */
-router.delete('/', handleDeleteAddress);
+router.delete('/', authenticateToken, handleDeleteAddress);
 
 export default router;

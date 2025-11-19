@@ -1,5 +1,5 @@
 import express from 'express';
-import { handleCreateUser, GetAllUsers, Login } from '../controllers/user.controller';
+import { handleCreateUser, GetAllUsers, Login, GetUserProfile, handleUpdateUser, handleDeleteUser } from '../controllers/user.controller';
 import { authenticateToken, checkRole } from '../middlewares/auth.middleware';
 
 const router = express.Router();
@@ -243,16 +243,68 @@ router.get('/', authenticateToken, checkRole('ADMIN'), GetAllUsers);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/profile', authenticateToken, (req, res) => {
-  const userToken = (req as any).user;
-  res.json({
-    success: true,
-    message: 'Perfil encontrado',
-    data: {
-      id: userToken.id,
-      type: userToken.type
-    }
-  });
-});
+router.get('/profile', authenticateToken, GetUserProfile);
+
+/**
+ * @swagger
+ * /users/profile:
+ *   put:
+ *     summary: '✏️ Atualizar meu perfil'
+ *     description: 'Atualiza dados do perfil do usuário logado'
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *                 example: 'João Santos Silva'
+ *               phone:
+ *                 type: string
+ *                 example: '31988887777'
+ *               type:
+ *                 type: string
+ *                 enum: ['CLIENT', 'ADMIN']
+ *                 example: 'CLIENT'
+ *     responses:
+ *       '200':
+ *         description: 'Perfil atualizado com sucesso'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Success'
+ *       '401':
+ *         description: 'Token inválido ou ausente'
+ */
+
+/**
+ * @swagger
+ * /users/profile:
+ *   delete:
+ *     summary: '🗑️ Deletar minha conta'
+ *     description: 'Remove permanentemente a conta do usuário logado'
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: 'Conta deletada com sucesso'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Success'
+ *       '401':
+ *         description: 'Token inválido ou ausente'
+ */
+
+router.put('/profile', authenticateToken, handleUpdateUser);
+router.delete('/profile', authenticateToken, handleDeleteUser);
 
 export default router;

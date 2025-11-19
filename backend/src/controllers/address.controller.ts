@@ -5,7 +5,7 @@ import { createAddress, getAddressByUserId, updateAddress, deleteAddress } from 
 
 // Interface para o Request com User (do middleware)
 interface AuthRequest extends Request {
-  user?: { id: string };
+  user?: { id: string; phone: string; type: 'ADMIN' | 'CLIENT' };
 }
 
 export const handleCreateAddress = async (req: AuthRequest, res: Response) => {
@@ -64,10 +64,15 @@ export const handleUpdateAddress = async (req: AuthRequest, res: Response) => {
 
 export const handleDeleteAddress = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = BigInt(req.user!.id);
+    const userId = BigInt(req.user!.id); // CORRIGIDO: converter para BigInt
+    
     await deleteAddress(userId);
-    res.status(204).send();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Endereço excluído com sucesso'
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao deletar endereço' });
+    res.status(500).json({ error: 'Erro ao excluir endereço' });
   }
 };

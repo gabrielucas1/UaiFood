@@ -1,5 +1,5 @@
 import express from 'express';
-import { handleCreateOrder, handleGetAllOrders } from '../controllers/order.controller';
+import { handleCreateOrder, handleGetAllOrders, handleGetMyOrders, handleUpdateOrderStatus } from '../controllers/order.controller';
 import { authenticateToken, checkRole } from '../middlewares/auth.middleware';
 
 const router = express.Router();
@@ -305,6 +305,54 @@ router.post('/', authenticateToken, handleCreateOrder);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
+router.get('/my-orders', authenticateToken, handleGetMyOrders);
 router.get('/', authenticateToken, handleGetAllOrders);
+
+/**
+ * @swagger
+ * /orders/{id}/status:
+ *   patch:
+ *     summary: '🔄 Atualizar status do pedido (ADMIN)'
+ *     description: 'Atualiza o status de um pedido específico. Requer permissão de ADMIN.'
+ *     tags:
+ *       - Orders
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 'ID do pedido'
+ *         example: '1'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: ['PENDING', 'PREPARING', 'DELIVERING', 'DELIVERED', 'CANCELLED']
+ *                 example: 'PREPARING'
+ *           example:
+ *             status: "PREPARING"
+ *     responses:
+ *       '200':
+ *         description: 'Status atualizado com sucesso'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Success'
+ *       '403':
+ *         description: 'Acesso negado - Requer permissão ADMIN'
+ *       '404':
+ *         description: 'Pedido não encontrado'
+ */
+router.patch('/:id/status', authenticateToken, checkRole('ADMIN'), handleUpdateOrderStatus);
 
 export default router;

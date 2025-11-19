@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './config/swagger.js';
-import routes from './routes/index.js';
+import swaggerSpec from './config/swagger';
+import routes from './routes/index';
 
 // Configurar variáveis de ambiente
 dotenv.config();
@@ -15,18 +15,28 @@ const PORT = process.env.PORT || 3991;
 app.use(cors());
 app.use(express.json());
 
-// 📚 Configuração do Swagger UI
+// 📚 Configuração do Swagger UI - CSS CORRIGIDO
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customSiteTitle: '🍽️ UaiFood API',
   customCss: `
-    .topbar-wrapper .link {
-      content: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTAwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8dGV4dCB4PSI1IiB5PSIyNSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE4IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzMzNzNkYyI+VWFpRm9vZDwvdGV4dD4KPC9zdmc+');
+    .swagger-ui .topbar { 
+      background-color: #2c5530; 
     }
-    .swagger-ui .topbar { background-color: #2c5530; }
+    .swagger-ui .topbar-wrapper img {
+      content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="40"><text x="5" y="25" font-family="Arial" font-size="18" font-weight="bold" fill="white">UaiFood</text></svg>');
+    }
+    .swagger-ui .topbar-wrapper .link:after {
+      content: "UaiFood API";
+      color: white;
+      font-weight: bold;
+    }
   `,
   swaggerOptions: {
     persistAuthorization: true,
-    displayRequestDuration: true
+    displayRequestDuration: true,
+    docExpansion: 'list',
+    filter: true,
+    showRequestHeaders: true
   }
 }));
 
@@ -39,7 +49,7 @@ app.get('/health', (req, res) => {
     status: 'OK', 
     message: '🍽️ UaiFood API funcionando!',
     timestamp: new Date().toISOString(),
-    docs: 'http://localhost:3991/api-docs',
+    docs: `http://localhost:${PORT}/api-docs`,
     version: '1.0.0'
   });
 });

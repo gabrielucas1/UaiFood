@@ -13,6 +13,6 @@ router.use('/users', userRoutes);
 router.use('/categories',categoryRoutes);
 router.use('/items',itemRoutes);
 router.use('/address',addressRoutes);
-router.use('/order',orderRoutes)
+router.use('/orders',orderRoutes)
 
 export default router;

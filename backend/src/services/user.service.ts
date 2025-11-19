@@ -1,7 +1,6 @@
-import { PrismaClient } from '../../../generated/prisma/client';
+import prisma from '../prisma';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
 
 // Função para criar um usuário
 export const createUser = async ({ nome, phone, password, type }: { nome: string; phone: string; password: string; type: 'CLIENT' | 'ADMIN' }) => {
@@ -19,7 +18,23 @@ export const getAllUsers = async () => {
 };
 
 // Função para buscar um usuário por ID
-export const getUserById = async (id: bigint) => prisma.user.findUnique({ where: { id } });
+export const getUserById = async (id: bigint) => prisma.user.findUnique({ 
+  where: { id },
+  include: { address: true }
+});
+
+export const updateUser = async (id: bigint, data: { nome?: string; phone?: string; type?: 'CLIENT' | 'ADMIN' }) => {
+  return prisma.user.update({
+    where: { id },
+    data
+  });
+};
+
+export const deleteUser = async (id: bigint) => {
+  return prisma.user.delete({
+    where: { id }
+  });
+};
 
 // Função para buscar um usuário pelo TELEFONE
 export const getUserByPhone = async (phone: string) => prisma.user.findUnique({ where: { phone } });

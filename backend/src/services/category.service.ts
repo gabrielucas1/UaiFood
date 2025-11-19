@@ -1,27 +1,48 @@
-import { PrismaClient } from '../../../generated/prisma/client';
+import prisma from '../prisma';
 
-const prisma = new PrismaClient();
 
 // Criar uma nova categoria
 export const createCategory = async (description: string) => {
-  return await prisma.category.create({
+  const category = await prisma.category.create({
     data: {
       description,
     },
   });
+  
+  return {
+    ...category,
+    id: category.id.toString()
+  };
 };
 
 // Listar todas as categorias
 export const getAllCategories = async () => {
-  return await prisma.category.findMany();
+  const categories = await prisma.category.findMany({
+    include: {
+      _count: {
+        select: { items: true }
+      }
+    }
+  });
+  
+  // Converter BigInt para string para evitar problemas de serialização JSON
+  return categories.map(category => ({
+    ...category,
+    id: category.id.toString()
+  }));
 };
 
 // atualizar a categoria
 export const updateCategory = async (id: bigint, description: string) => {
-  return await prisma.category.update({
+  const category = await prisma.category.update({
     where: { id },
     data: { description },
   });
+  
+  return {
+    ...category,
+    id: category.id.toString()
+  };
 };
 
 export const getCategoryById = async (id: bigint) => {
@@ -29,7 +50,13 @@ export const getCategoryById = async (id: bigint) => {
     const category = await prisma.category.findUnique({
       where: { id }
     });
-    return category;
+    
+    if (!category) return null;
+    
+    return {
+      ...category,
+      id: category.id.toString()
+    };
   } catch (error) {
     throw new Error('Erro ao buscar categoria por ID');
   }

@@ -1,22 +1,19 @@
 import { z } from 'zod';
 
-// Define o schema de CADA item dentro do pedido
-export const orderItemSchema = z.object({
-  // ID do item que deve ser um número (será BigInt no service)
-  itemId: z.coerce.number().int().positive('ID do item é obrigatório e deve ser positivo'), 
-  
-  // A quantidade
-  quantity: z.coerce.number().int().positive('A quantidade deve ser um número inteiro positivo'), 
+export const createOrderSchema = z.object({
+  addressId: z.string().optional().transform(val => val ? BigInt(val) : undefined),
+  paymentMethod: z.enum(['CASH', 'DEBIT', 'CREDIT', 'PIX']),
+  items: z.array(
+    z.object({
+      itemId: z.string().transform(val => BigInt(val)),
+      quantity: z.number().positive()
+    })
+  ).min(1, "Pelo menos um item é obrigatório")
 });
 
-// Schema principal para CRIAR um pedido
-export const createOrderSchema = z.object({
-  // O método de pagamento deve ser um dos Enums (CASH, CREDIT, etc.)
-  paymentMethod: z.enum(['CASH', 'DEBIT', 'CREDIT', 'PIX'], 'Método de pagamento inválido.'),
-  
-  // A lista de itens que compõem o pedido
-  items: z.array(orderItemSchema).min(1, 'O pedido deve ter pelo menos um item.'),
-  
-  // Opcional: Endereço do Cliente. O controlador irá lidar com a busca.
-  addressId: z.coerce.number().int().positive('ID do endereço inválido.').optional(), 
+export const updateOrderStatusSchema = z.object({
+  status: z.enum(['PENDING', 'PREPARING', 'DELIVERING', 'DELIVERED', 'CANCELLED'])
 });
+
+export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;

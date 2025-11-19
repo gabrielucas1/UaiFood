@@ -1,7 +1,6 @@
 // Lembre de ajustar o import se você já criou o lib/prisma ou usar o caminho antigo
-import { PrismaClient } from '../../../generated/prisma/client';
+import prisma from '../prisma';
 
-const prisma = new PrismaClient();
 
 // Criar endereço (Vinculado ao User Logado)
 export const createAddress = async (userId: bigint, data: any) => {

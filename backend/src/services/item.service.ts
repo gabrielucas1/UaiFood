@@ -1,7 +1,4 @@
-import { PrismaClient } from "../../../generated/prisma/client";
-
-const prisma = new PrismaClient();
-
+import prisma from '../prisma';
 
 // Criar Item
 export const createItem = async (data: { description: string; unitPrice: number; categoryId: number }) => {
@@ -27,12 +24,18 @@ export const getAllItems = async () => {
 
   // Precisamos converter BigInt para String/Number antes de retornar
   // senão o JSON quebra (igual aconteceu no User)
-  return items.map(item => ({
+  const mappedItems = items.map(item => ({
     ...item,
     id: item.id.toString(),
     categoryId: item.categoryId.toString(),
-    unitPrice: Number(item.unitPrice) // Garante que preço seja número
+    unitPrice: Number(item.unitPrice), // Garante que preço seja número
+    category: item.category ? {
+      ...item.category,
+      id: item.categoryId.toString() // Adiciona o ID da categoria no objeto category
+    } : null
   }));
+
+  return mappedItems;
 };
 
 // Atualizar Item
