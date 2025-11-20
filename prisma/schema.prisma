@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserType {
+  CLIENT
+  ADMIN
+}
+
+enum PaymentMethod {
+  CASH
+  DEBIT
+  CREDIT
+  PIX
+}
+
+model User {
+  id            BigInt   @id @default(autoincrement())
+  nome          String
+  phone         String   @unique
+  password      String
+  type          UserType
+  ordersClient  Order[]  @relation("ClientOrders")
+  ordersCreator Order[]  @relation("CreateByOrders")
+  address       Address?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Address {
+  id        BigInt   @id @default(autoincrement())
+  street    String
+  number    String
+  district  String
+  city      String
+  state     String
+  zipCode   String
+  // order     Order[]
+  userId    BigInt   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id          BigInt   @id @default(autoincrement())
+  description String
+  items       Item[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Item {
+  id          BigInt      @id @default(autoincrement())
+  description String
+  unitPrice   Decimal
+  categoryId  BigInt
+  category    Category    @relation(fields: [categoryId], references: [id])
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Order {
+  id            BigInt        @id @default(autoincrement())
+  paymentMethod PaymentMethod
+  status        String
+  total         Decimal
+  clientId      BigInt
+  client        User          @relation(name: "ClientOrders", fields: [clientId], references: [id])
+  createdById   BigInt
+  createdBy     User          @relation(name: "CreateByOrders", fields: [createdById], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  orderItems     OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  quantity  Int
+  orderId   BigInt
+  order     Order    @relation(fields: [orderId], references: [id])
+  itemId    BigInt
+  item      Item     @relation(fields: [itemId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // chave primaria composta
+  @@id([orderId,itemId]) // tem como objetivo garantir que um pedido tenha 1 unico item
+}
