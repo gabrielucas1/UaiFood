@@ -10,7 +10,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL") 
+  // é um erro que avisa que na versão 7.0 a url não será mais necessária no datasource,
+  // pois será configurada automaticamente através das variáveis de ambiente
 }
 
 enum UserType {

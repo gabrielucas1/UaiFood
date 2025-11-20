@@ -11,27 +11,49 @@ import { z } from 'zod';
 // 📝 Schema para CRIAR/REGISTRAR usuário
 export const userSchema = z.object({
   nome: z.string()
-    .min(3, 'O nome deve ter pelo menos 3 caracteres')
-    .max(100, 'O nome deve ter no máximo 100 caracteres'),
+    .trim()
+    .min(1, 'Nome é obrigatório')
+    .min(4, 'Nome deve ter pelo menos 4 caracteres')
+    .max(100, 'Nome deve ter no máximo 100 caracteres')
+    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras e espaços'),
   
   phone: z.string()
-    .regex(/^\d{10,11}$/, 'O telefone deve ter 10 ou 11 dígitos')
-    .transform(phone => phone.replace(/\D/g, '')), // Remove caracteres não numéricos
+    .trim()
+    .min(1, 'Telefone é obrigatório')
+    .transform(phone => phone.replace(/\D/g, ''))
+    .refine(phone => phone.length >= 10 && phone.length <= 11, {
+      message: 'Telefone deve ter 10 ou 11 dígitos (ex: 31999999999)'
+    })
+    .refine(phone => /^[1-9]/.test(phone), {
+      message: 'Telefone deve começar com um dígito válido'
+    }),
   
   password: z.string()
-    .min(6, 'A senha deve ter pelo menos 6 caracteres')
-    .max(100, 'A senha deve ter no máximo 100 caracteres'),
+    .min(1, 'Senha é obrigatória')
+    .min(6, 'Senha deve ter pelo menos 6 caracteres')
+    .max(100, 'Senha deve ter no máximo 100 caracteres')
+    .regex(/(?=.*[a-z])/, 'Senha deve conter pelo menos uma letra minúscula')
+    .regex(/(?=.*[0-9])/, 'Senha deve conter pelo menos um número'),
   
-  type: z.enum(['CLIENT', 'ADMIN']),
+  type: z.enum(['CLIENT', 'ADMIN'], {
+    errorMap: () => ({ message: 'Tipo deve ser CLIENT ou ADMIN' })
+  }),
 });
 
 // 🔐 Schema para LOGIN
 export const loginSchema = z.object({
   phone: z.string()
-    .regex(/^\d{10,11}$/, 'O telefone deve ter 10 ou 11 dígitos'),
+    .trim()
+    .min(1, 'Telefone é obrigatório')
+    .transform(phone => phone.replace(/\D/g, ''))
+    .refine(phone => phone.length >= 10 && phone.length <= 11, {
+      message: 'Digite um telefone válido (ex: 31999999999)'
+    }),
   
   password: z.string()
-    .min(1, 'A senha é obrigatória'),
+    .trim()
+    .min(1, 'Senha é obrigatória')
+    .min(6, 'Senha deve ter pelo menos 6 caracteres'),
 });
 
 // 📋 Schema para ATUALIZAR perfil (opcional - para uso futuro)

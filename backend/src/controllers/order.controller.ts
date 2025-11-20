@@ -23,8 +23,12 @@ export const handleCreateOrder = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
+        success: false,
         error: 'Dados inválidos', 
-        details: error.errors 
+        details: error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+        }))
       });
     }
     
@@ -121,7 +125,14 @@ export const handleUpdateOrderStatus = async (req: AuthRequest, res: Response) =
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Status inválido', details: error.errors });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Dados inválidos', 
+        details: error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+        }))
+      });
     }
     
     res.status(500).json({ error: 'Erro ao atualizar status do pedido' });

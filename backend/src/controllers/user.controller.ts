@@ -36,10 +36,10 @@ export const handleCreateUser = async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         success: false,
-        message: 'Dados inválidos',
-        errors: error.issues.map(issue => ({
-          campo: issue.path.join('.'),
-          mensagem: issue.message,
+        error: 'Dados inválidos',
+        details: error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message,
         })),
       });
     }

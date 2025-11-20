@@ -12,12 +12,25 @@ export const handleCreateItem = async (req: Request, res: Response) => {
     
     // Tratamento do BigInt na resposta
     res.status(201).json({
-      ...item,
-      id: item.id.toString(),
-      categoryId: item.categoryId.toString()
+      success: true,
+      message: 'Item criado com sucesso',
+      data: {
+        ...item,
+        id: item.id.toString(),
+        categoryId: item.categoryId.toString()
+      }
     });
   } catch (error) {
-    if (error instanceof z.ZodError) return res.status(400).json({ errors: error.issues });
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Dados inválidos',
+        details: error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+        }))
+      });
+    }
     // Erro P2003 = Foreign Key falhou (Categoria não existe)
     res.status(500).json({ error: 'Erro ao criar item. Verifique se a categoria existe.' });
   }
@@ -51,12 +64,25 @@ export const handleUpdateItem = async (req: Request, res: Response) => {
     const item = await updateItem(BigInt(id), data);
     
     res.status(200).json({
-      ...item,
-      id: item.id.toString(),
-      categoryId: item.categoryId.toString()
+      success: true,
+      message: 'Item atualizado com sucesso',
+      data: {
+        ...item,
+        id: item.id.toString(),
+        categoryId: item.categoryId.toString()
+      }
     });
   } catch (error) {
-    if (error instanceof z.ZodError) return res.status(400).json({ errors: error.issues });
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Dados inválidos',
+        details: error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+        }))
+      });
+    }
     res.status(500).json({ error: 'Erro ao atualizar item' });
   }
 };

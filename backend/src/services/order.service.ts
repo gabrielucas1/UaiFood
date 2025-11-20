@@ -6,15 +6,14 @@ type OrderInput = z.infer<typeof createOrderSchema>;
 type StatusInput = z.infer<typeof updateOrderStatusSchema>;
 
 export const createOrder = async (userId: bigint, data: OrderInput) => {
-  if (!data.addressId) {
-    const userAddress = await prisma.address.findFirst({
-      where: { userId: userId }
-    });
-    
-    if (!userAddress) {
-      throw new Error('Usuário não possui endereço cadastrado.');
-    }
-  }
+  // 🚫 VALIDAÇÃO DE ENDEREÇO REMOVIDA - permitir pedidos sem endereço
+  // const userAddress = await prisma.address.findFirst({
+  //   where: { userId: userId }
+  // });
+  
+  // if (!userAddress) {
+  //   throw new Error('Você precisa cadastrar um endereço antes de fazer pedidos. Acesse seu perfil para adicionar um endereço.');
+  // }
 
   const itemIds = data.items.map(item => item.itemId);
   const products = await prisma.item.findMany({
@@ -120,4 +119,3 @@ export const updateOrderStatus = async (orderId: bigint, statusData: StatusInput
   };
 };
 
-// Implementar funções deleteOrder aqui se necessário

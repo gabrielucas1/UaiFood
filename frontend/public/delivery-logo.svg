@@ -1,0 +1,81 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Motorcycle -->
+  <g id="motorcycle">
+    <!-- Back wheel -->
+    <circle cx="150" cy="450" r="60" fill="#333" stroke="#555" stroke-width="8"/>
+    <circle cx="150" cy="450" r="35" fill="#666"/>
+    <circle cx="150" cy="450" r="20" fill="#999"/>
+    
+    <!-- Front wheel -->
+    <circle cx="550" cy="450" r="60" fill="#333" stroke="#555" stroke-width="8"/>
+    <circle cx="550" cy="450" r="35" fill="#666"/>
+    <circle cx="550" cy="450" r="20" fill="#999"/>
+    
+    <!-- Motorcycle body -->
+    <path d="M200 420 L500 420 L520 400 L520 360 L480 340 L220 340 Z" fill="#dc2626"/>
+    <path d="M200 420 L200 380 L480 380 L500 400 Z" fill="#b91c1c"/>
+    
+    <!-- Fuel tank -->
+    <ellipse cx="350" cy="320" rx="80" ry="40" fill="#dc2626"/>
+    <ellipse cx="350" cy="315" rx="70" ry="35" fill="#ef4444"/>
+    
+    <!-- Handlebars -->
+    <line x1="520" y1="340" x2="560" y2="320" stroke="#333" stroke-width="8"/>
+    <circle cx="565" cy="318" r="8" fill="#666"/>
+    <line x1="520" y1="340" x2="540" y2="355" stroke="#333" stroke-width="6"/>
+    <circle cx="542" cy="357" r="6" fill="#666"/>
+    
+    <!-- Seat -->
+    <ellipse cx="300" cy="300" rx="60" ry="20" fill="#8b4513"/>
+    <ellipse cx="300" cy="295" rx="55" ry="18" fill="#a0522d"/>
+  </g>
+  
+  <!-- Delivery person -->
+  <g id="person">
+    <!-- Body -->
+    <ellipse cx="320" cy="280" rx="40" ry="60" fill="#22c55e"/>
+    <ellipse cx="320" cy="275" rx="35" ry="55" fill="#16a34a"/>
+    
+    <!-- Arms -->
+    <ellipse cx="280" cy="250" rx="15" ry="40" fill="#22c55e" transform="rotate(-20 280 250)"/>
+    <ellipse cx="360" cy="250" rx="15" ry="40" fill="#22c55e" transform="rotate(45 360 250)"/>
+    
+    <!-- Hands -->
+    <circle cx="275" cy="285" r="12" fill="#d4af37"/>
+    <circle cx="380" cy="220" r="12" fill="#d4af37"/>
+    
+    <!-- Legs -->
+    <ellipse cx="300" cy="350" rx="18" ry="50" fill="#cd853f"/>
+    <ellipse cx="340" cy="350" rx="18" ry="50" fill="#cd853f"/>
+    
+    <!-- Head -->
+    <circle cx="320" cy="200" r="35" fill="#d4af37"/>
+    
+    <!-- Helmet -->
+    <path d="M285 180 Q320 160 355 180 Q355 200 350 220 Q320 235 290 220 Q285 200 285 180 Z" fill="#22c55e"/>
+    <path d="M290 185 Q320 170 350 185 Q350 200 345 215 Q320 225 295 215 Q290 200 290 185 Z" fill="#16a34a"/>
+    <!-- Visor -->
+    <path d="M295 190 Q320 180 345 190 Q340 205 320 210 Q300 205 295 190 Z" fill="#1f2937" opacity="0.8"/>
+  </g>
+  
+  <!-- Delivery box -->
+  <g id="delivery-box">
+    <rect x="220" y="180" width="80" height="80" fill="#f3f4f6" stroke="#9ca3af" stroke-width="3"/>
+    <rect x="225" y="185" width="70" height="70" fill="#ffffff"/>
+    <path d="M230 200 L290 200 L290 240 L230 240 Z" fill="#e5e7eb"/>
+    <!-- UaiFood logo on box -->
+    <text x="260" y="225" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#22c55e" text-anchor="middle">Uai</text>
+    <text x="260" y="240" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#22c55e" text-anchor="middle">Food</text>
+  </g>
+  
+  <!-- Motion lines -->
+  <g id="motion" opacity="0.6">
+    <line x1="100" y1="380" x2="50" y2="380" stroke="#9ca3af" stroke-width="3"/>
+    <line x1="120" y1="390" x2="80" y2="390" stroke="#9ca3af" stroke-width="2"/>
+    <line x1="110" y1="400" x2="70" y2="400" stroke="#9ca3af" stroke-width="2"/>
+    <line x1="130" y1="370" x2="90" y2="370" stroke="#9ca3af" stroke-width="2"/>
+  </g>
+  
+  <!-- Ground -->
+  <ellipse cx="400" cy="520" rx="350" ry="20" fill="#9ca3af" opacity="0.3"/>
+</svg>
