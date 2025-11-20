@@ -23,3 +23,6 @@ generated/
 .vscode/
 .idea/
 .DS_Store
+
+*.log
+.sql

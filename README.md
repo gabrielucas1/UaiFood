@@ -21,7 +21,6 @@ O **UaiFood** é um sistema completo de delivery de comida típica mineira, dese
 - **Hooks Customizados**: Para gerenciamento de estado
 
 ---
-
 ---
 
 ## 📁 Estrutura de Pastas Simplificada

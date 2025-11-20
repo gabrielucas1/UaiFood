@@ -3,14 +3,13 @@ import { z } from 'zod';
 import { addressSchema, updateAddressSchema } from '../schema/address.schema';
 import { createAddress, getAddressByUserId, updateAddress, deleteAddress } from '../services/address.service';
 
-// Interface para o Request com User (do middleware)
 interface AuthRequest extends Request {
   user?: { id: string; phone: string; type: 'ADMIN' | 'CLIENT' };
 }
 
 export const handleCreateAddress = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = BigInt(req.user!.id); // Pega ID do token
+    const userId = BigInt(req.user!.id); 
     const data = addressSchema.parse(req.body);
     
     const address = await createAddress(userId, data);
@@ -22,7 +21,6 @@ export const handleCreateAddress = async (req: AuthRequest, res: Response) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) return res.status(400).json({ errors: error.issues });
-    // Erro genérico ou "Usuário já possui endereço"
     res.status(400).json({ error: (error as Error).message });
   }
 };

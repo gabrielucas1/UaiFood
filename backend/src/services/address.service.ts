@@ -1,10 +1,7 @@
-// Lembre de ajustar o import se você já criou o lib/prisma ou usar o caminho antigo
 import prisma from '../prisma';
 
 
-// Criar endereço (Vinculado ao User Logado)
 export const createAddress = async (userId: bigint, data: any) => {
-  // Verifica se o usuário já tem endereço
   const existingAddress = await prisma.address.findUnique({
     where: { userId },
   });
@@ -16,27 +13,24 @@ export const createAddress = async (userId: bigint, data: any) => {
   return await prisma.address.create({
     data: {
       ...data,
-      userId, // Vincula ao usuário
+      userId, 
     },
   });
 };
 
-// Buscar endereço do usuário logado
 export const getAddressByUserId = async (userId: bigint) => {
   return await prisma.address.findUnique({
     where: { userId },
   });
 };
 
-// Atualizar endereço do usuário logado
 export const updateAddress = async (userId: bigint, data: any) => {
   return await prisma.address.update({
-    where: { userId }, // O Prisma sabe encontrar pelo userId porque é @unique
+    where: { userId }, 
     data,
   });
 };
 
-// Deletar endereço
 export const deleteAddress = async (userId: bigint) => {
   return await prisma.address.delete({
     where: { userId },

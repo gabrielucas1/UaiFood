@@ -23,8 +23,12 @@ export const handleCreateOrder = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
+        success: false,
         error: 'Dados inválidos', 
-        details: error.errors 
+        details: error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+        }))
       });
     }
     
@@ -34,15 +38,17 @@ export const handleCreateOrder = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Listar Pedidos (Filtra por CLIENT ou lista todos para ADMIN)
 export const handleGetAllOrders = async (req: AuthRequest, res: Response) => {
   try {
+
     const userId = BigInt(req.user!.id);
     const userType = req.user!.type;
 
+    
     const orders = await getAllOrders(userId, userType);
+    
+    console.log(`📦 Pedidos encontrados: ${orders.length}`);
 
-    // Mapear a resposta para converter BigInts e incluir dados relacionados
     const mappedOrders = orders.map(order => ({
       id: order.id.toString(),
       userId: order.clientId.toString(),
@@ -73,18 +79,19 @@ export const handleGetAllOrders = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Buscar APENAS os pedidos do usuário logado (para a home page)
 export const handleGetMyOrders = async (req: AuthRequest, res: Response) => {
   try {
     const userId = BigInt(req.user!.id);
 
-    // Buscar apenas os pedidos do usuário logado
+    console.log('🔍 Buscando pedidos do usuário:', req.user!.id);
+
     const orders = await getAllOrders(userId, 'CLIENT');
 
-    // Mapear para o formato esperado pelo frontend
+    console.log('📦 Pedidos encontrados:', orders.length);
+
     const mappedOrders = orders.map(order => ({
-      id: order.id.toString(),
-      total: order.total.toString(),
+      id: order.id, 
+      total: order.total, 
       status: order.status,
       createdAt: order.createdAt,
       orderItems: order.orderItems.map(orderItem => ({
@@ -97,13 +104,15 @@ export const handleGetMyOrders = async (req: AuthRequest, res: Response) => {
 
     res.status(200).json(mappedOrders);
   } catch (error) {
-    console.error('Erro ao buscar pedidos do usuário:', error);
+    console.error('❌ Erro ao buscar pedidos do usuário:', error);
     res.status(500).json({ error: 'Erro ao buscar seus pedidos.' });
   }
 };
 
 export const handleUpdateOrderStatus = async (req: AuthRequest, res: Response) => {
   try {
+
+    
     const { id } = req.params;
     const userType = req.user!.type;
 
@@ -112,6 +121,7 @@ export const handleUpdateOrderStatus = async (req: AuthRequest, res: Response) =
     }
 
     const validatedData = updateOrderStatusSchema.parse(req.body); // CORRIGIDO: validar dados
+    
     const order = await updateOrderStatus(BigInt(id), validatedData);
     
     res.status(200).json({
@@ -120,8 +130,16 @@ export const handleUpdateOrderStatus = async (req: AuthRequest, res: Response) =
       data: order
     });
   } catch (error) {
+    
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Status inválido', details: error.errors });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Dados inválidos', 
+        details: error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+        }))
+      });
     }
     
     res.status(500).json({ error: 'Erro ao atualizar status do pedido' });

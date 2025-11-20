@@ -1,12 +1,24 @@
 import {z} from 'zod';
 
-//schema para atualizar categoria
 export const categorySchema = z.object({
-    description: z.string().min(3,'A descrição deve ter no mínimo 3 caracteres')
+    description: z.string()
+        .trim()
+        .min(1, 'Descrição da categoria é obrigatória')
+        .min(3, 'Descrição deve ter pelo menos 3 caracteres')
+        .max(100, 'Descrição deve ter no máximo 100 caracteres')
+        .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Descrição deve conter apenas letras e espaços')
+        .refine(val => val.trim().length > 0, {
+            message: 'Descrição não pode ser apenas espaços em branco'
+        })
 });
 
 
-// Schema para validar o ID na URL (parâmetros)
 export const idParamSchema = z.object({
-  id: z.string().regex(/^\d+$/, 'O ID deve ser um número'),
+  id: z.string()
+    .trim()
+    .min(1, 'ID é obrigatório')
+    .regex(/^\d+$/, 'ID deve ser um número válido')
+    .refine(val => parseInt(val) > 0, {
+        message: 'ID deve ser maior que zero'
+    })
 });

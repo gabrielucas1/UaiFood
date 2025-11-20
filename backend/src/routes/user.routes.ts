@@ -1,5 +1,5 @@
 import express from 'express';
-import { handleCreateUser, GetAllUsers, Login, GetUserProfile, handleUpdateUser, handleDeleteUser } from '../controllers/user.controller';
+import { handleCreateUser, GetAllUsers, Login, GetUserProfile, handleUpdateUser, handleDeleteUser, handleChangePassword, handleChangeUserType } from '../controllers/user.controller';
 import { authenticateToken, checkRole } from '../middlewares/auth.middleware';
 
 const router = express.Router();
@@ -247,6 +247,64 @@ router.get('/profile', authenticateToken, GetUserProfile);
 
 /**
  * @swagger
+ * /users/change-password:
+ *   put:
+ *     summary: '🔑 Alterar minha senha'
+ *     description: 'Permite ao usuário logado alterar sua senha fornecendo a senha atual'
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: 'Senha atual do usuário'
+ *                 example: 'senha123'
+ *               newPassword:
+ *                 type: string
+ *                 description: 'Nova senha (mínimo 6 caracteres, deve conter letra e número)'
+ *                 example: 'novaSenha456'
+ *               confirmPassword:
+ *                 type: string
+ *                 description: 'Confirmação da nova senha'
+ *                 example: 'novaSenha456'
+ *     responses:
+ *       '200':
+ *         description: 'Senha alterada com sucesso'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 'Senha alterada com sucesso'
+ *       '400':
+ *         description: 'Dados inválidos ou senha atual incorreta'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       '401':
+ *         description: 'Token inválido ou ausente'
+ */
+router.put('/change-password', authenticateToken, handleChangePassword);
+
+/**
+ * @swagger
  * /users/profile:
  *   put:
  *     summary: '✏️ Atualizar meu perfil'
@@ -306,5 +364,75 @@ router.get('/profile', authenticateToken, GetUserProfile);
 
 router.put('/profile', authenticateToken, handleUpdateUser);
 router.delete('/profile', authenticateToken, handleDeleteUser);
+
+/**
+ * @swagger
+ * /users/{id}/type:
+ *   patch:
+ *     summary: '🔑 Alterar tipo de usuário'
+ *     description: 'Permite que administradores alterem o tipo de usuário de outros usuários'
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 'ID do usuário'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - type
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: ['CLIENT', 'ADMIN']
+ *                 description: 'Novo tipo de usuário'
+ *                 example: 'ADMIN'
+ *     responses:
+ *       '200':
+ *         description: 'Tipo de usuário alterado com sucesso'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 'Tipo de usuário alterado com sucesso'
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: '1'
+ *                     nome:
+ *                       type: string
+ *                       example: 'João Silva'
+ *                     phone:
+ *                       type: string
+ *                       example: '31999999999'
+ *                     type:
+ *                       type: string
+ *                       enum: ['CLIENT', 'ADMIN']
+ *                       example: 'ADMIN'
+ *       '400':
+ *         description: 'Dados inválidos ou tentativa de alterar próprio tipo'
+ *       '403':
+ *         description: 'Acesso negado - Apenas administradores'
+ *       '404':
+ *         description: 'Usuário não encontrado'
+ */
+router.patch('/:id/type', authenticateToken, checkRole('ADMIN'), handleChangeUserType);
 
 export default router;

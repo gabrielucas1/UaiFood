@@ -36,25 +36,20 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   }
 };
 
-// 💂 NOVO: Middleware de Autorização (verifica o tipo de usuário)
 export const checkRole = (allowedType: 'ADMIN' | 'CLIENT') => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
-    // Verifica se o req.user foi anexado pelo authenticateToken
     if (!req.user) {
       return res.status(401).json({ 
         error: 'Usuário não autenticado. Use authenticateToken primeiro!' 
       });
     }
 
-    // Verifica se o tipo do usuário é o permitido
     if (req.user.type !== allowedType) {
-      // 403 Forbidden = Você está logado, mas não tem permissão
       return res.status(403).json({ 
         error: `Acesso negado. Apenas usuários ${allowedType} podem acessar.` 
       });
     }
 
-    // Se tiver permissão, continua
     next();
   };
 };

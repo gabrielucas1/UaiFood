@@ -6,14 +6,12 @@ type OrderInput = z.infer<typeof createOrderSchema>;
 type StatusInput = z.infer<typeof updateOrderStatusSchema>;
 
 export const createOrder = async (userId: bigint, data: OrderInput) => {
-  if (!data.addressId) {
-    const userAddress = await prisma.address.findFirst({
-      where: { userId: userId }
-    });
-    
-    if (!userAddress) {
-      throw new Error('Usuário não possui endereço cadastrado.');
-    }
+  const userAddress = await prisma.address.findFirst({
+    where: { userId: userId }
+  });
+  
+  if (!userAddress) {
+    throw new Error('Você precisa cadastrar um endereço antes de fazer pedidos. Acesse seu perfil para adicionar um endereço.');
   }
 
   const itemIds = data.items.map(item => item.itemId);
@@ -90,7 +88,18 @@ export const getAllOrders = async (userId: bigint, userType: string) => {
   return orders.map(order => ({
     ...order,
     id: order.id.toString(),
-    total: Number(order.total)
+    clientId: order.clientId.toString(),
+    createdById: order.createdById.toString(),
+    total: Number(order.total),
+    orderItems: order.orderItems.map(item => ({
+      ...item,
+      orderId: item.orderId.toString(),
+      itemId: item.itemId.toString(),
+      item: {
+        ...item.item,
+        unitPrice: Number(item.item.unitPrice)
+      }
+    }))
   }));
 };
 
@@ -116,8 +125,16 @@ export const updateOrderStatus = async (orderId: bigint, statusData: StatusInput
     id: order.id.toString(),
     clientId: order.clientId.toString(),
     createdById: order.createdById.toString(),
-    total: Number(order.total)
+    total: Number(order.total),
+    orderItems: order.orderItems.map(item => ({
+      ...item,
+      orderId: item.orderId.toString(),
+      itemId: item.itemId.toString(),
+      item: {
+        ...item.item,
+        unitPrice: Number(item.item.unitPrice)
+      }
+    }))
   };
 };
 
-// Implementar funções deleteOrder aqui se necessário

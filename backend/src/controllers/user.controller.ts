@@ -1,23 +1,15 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
-import { createUser, getAllUsers, getUserById, getUserByPhone, updateUser, deleteUser } from '../services/user.service';
+import { createUser, getAllUsers, getUserById, getUserByPhone, updateUser, deleteUser, changeUserPassword } from '../services/user.service';
 import { z } from 'zod';
-import { userSchema, loginSchema } from '../schema/user.schema';
+import { userSchema, loginSchema, updateUserSchema, changePasswordSchema } from '../schema/user.schema';
+import prisma from '../prisma';
 
-// ADICIONAR interface AuthRequest se não existir:
 interface AuthRequest extends Request {
   user?: { id: bigint; phone: string; type: 'ADMIN' | 'CLIENT' };
 }
 
-// ADICIONAR schema de update se não existir:
-const updateUserSchema = z.object({
-  nome: z.string().min(3).optional(),
-  phone: z.string().regex(/^\d{10,11}$/).optional(),
-  type: z.enum(['CLIENT', 'ADMIN']).optional()
-});
-
-// 🆕 CRIAR NOVO USUÁRIO (REGISTRO)
 export const handleCreateUser = async (req: Request, res: Response) => {
   try {
     const { nome, phone, password, type } = userSchema.parse(req.body);
@@ -36,10 +28,10 @@ export const handleCreateUser = async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         success: false,
-        message: 'Dados inválidos',
-        errors: error.issues.map(issue => ({
-          campo: issue.path.join('.'),
-          mensagem: issue.message,
+        error: 'Dados inválidos',
+        details: error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message,
         })),
       });
     }
@@ -50,7 +42,6 @@ export const handleCreateUser = async (req: Request, res: Response) => {
   }
 };
 
-// 📋 Listar todos os usuários
 export const GetAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await getAllUsers();
@@ -66,7 +57,6 @@ export const GetAllUsers = async (req: Request, res: Response) => {
   }
 };
 
-// 👤 Buscar perfil completo do usuário logado
 export const GetUserProfile = async (req: Request, res: Response) => {
   try {
     const userToken = (req as any).user;
@@ -80,10 +70,9 @@ export const GetUserProfile = async (req: Request, res: Response) => {
       });
     }
 
-    // Formatar endereço - dados de exemplo quando não há endereço
     const addressString = user.address ? 
       `${user.address.street}, ${user.address.number}, ${user.address.district}, ${user.address.city} - ${user.address.state}` :
-      'Rua das Flores, 123, Centro, Belo Horizonte - MG';
+      null;
 
     const responseData = {
       name: user.nome,
@@ -100,14 +89,14 @@ export const GetUserProfile = async (req: Request, res: Response) => {
   }
 };
 
-// IMPLEMENTAR se não existirem:
 export const handleUpdateUser = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
+
     const validatedData = updateUserSchema.parse(req.body);
-    
+
     const updatedUser = await updateUser(userId, validatedData);
-    
+
     res.status(200).json({
       success: true,
       message: 'Perfil atualizado com sucesso',
@@ -115,10 +104,20 @@ export const handleUpdateUser = async (req: AuthRequest, res: Response) => {
         id: updatedUser.id.toString(),
         nome: updatedUser.nome,
         phone: updatedUser.phone,
-        type: updatedUser.type
-      }
+        type: updatedUser.type,
+      },
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Dados inválidos',
+        details: error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+        })),
+      });
+    }
     res.status(500).json({ error: 'Erro ao atualizar perfil' });
   }
 };
@@ -138,7 +137,6 @@ export const handleDeleteUser = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// 🔐 Login e geração de token
 export const Login = async (req: Request, res: Response) => {
   try {
     const { phone, password } = loginSchema.parse(req.body);
@@ -165,3 +163,115 @@ export const Login = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Erro ao realizar login' });
   }
 };
+
+export const handleChangePassword = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
+
+    // Buscar o usuário atual
+    const user = await getUserById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Senha atual incorreta'
+      });
+    }
+
+    await changeUserPassword(userId, newPassword);
+
+    res.status(200).json({
+      success: true,
+      message: 'Senha alterada com sucesso'
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Dados inválidos',
+        details: error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+        })),
+      });
+    }
+    console.error('❌ Erro ao alterar senha:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor'
+    });
+  }
+};
+
+export const handleChangeUserType = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { type } = req.body;
+    const adminUserId = req.user!.id;
+
+    if (req.user!.type !== 'ADMIN') {
+      return res.status(403).json({
+        success: false,
+        message: 'Apenas administradores podem alterar tipos de usuário'
+      });
+    }
+
+    if (!['ADMIN', 'CLIENT'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tipo de usuário inválido. Use: ADMIN ou CLIENT'
+      });
+    }
+
+    if (adminUserId.toString() === id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Você não pode alterar seu próprio tipo de usuário'
+      });
+    }
+
+    const user = await getUserById(BigInt(id));
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: BigInt(id) },
+      data: { type },
+      select: {
+        id: true,
+        nome: true,
+        phone: true,
+        type: true,
+        createdAt: true
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Tipo de usuário alterado com sucesso',
+      data: {
+        ...updatedUser,
+        id: updatedUser.id.toString()
+      }
+    });
+  } catch (error) {
+    console.error('❌ Erro ao alterar tipo de usuário:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor'
+    });
+  }
+};
+

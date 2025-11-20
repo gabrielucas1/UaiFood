@@ -12,7 +12,6 @@ const router = express.Router();
 // 🔒 Aplica autenticação a todas as sub-rotas
 router.use(authenticateToken);
 
-// === 🔐 ROTAS PROTEGIDAS (USUÁRIO LOGADO) ===
 
 /**
  * @swagger

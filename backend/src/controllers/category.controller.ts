@@ -9,7 +9,6 @@ import {
   deleteCategory 
 } from '../services/category.service';
 
-// Criar Categoria
 export const handleCreateCategory = async (req: Request, res: Response) => {
   try {
     const { description } = categorySchema.parse(req.body);
@@ -23,7 +22,6 @@ export const handleCreateCategory = async (req: Request, res: Response) => {
   }
 };
 
-// Listar Todas as Categorias
 export const handleGetAllCategories = async (req: Request, res: Response) => {
   try {
     const categories = await getAllCategories();
@@ -40,7 +38,6 @@ export const handleGetAllCategories = async (req: Request, res: Response) => {
   }
 };
 
-// ➕ ADICIONAR ESTA FUNÇÃO:
 export const handleGetCategoryById = async (req: Request, res: Response) => {
   try {
     const { id } = idParamSchema.parse(req.params);
@@ -66,7 +63,6 @@ export const handleGetCategoryById = async (req: Request, res: Response) => {
   }
 };
 
-// Atualizar Categoria
 export const handleUpdateCategory = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
