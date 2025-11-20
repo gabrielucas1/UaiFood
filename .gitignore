@@ -12,6 +12,7 @@ dist/
 # Prisma
 prisma/migrations/
 prisma/generated/
+generated/
 
 # Environment
 .env

@@ -4,6 +4,7 @@ import { categorySchema, idParamSchema } from '../schema/category.schema';
 import { 
   createCategory, 
   getAllCategories, 
+  getCategoryById,
   updateCategory, 
   deleteCategory 
 } from '../services/category.service';
@@ -29,6 +30,27 @@ export const handleGetAllCategories = async (req: Request, res: Response) => {
     res.status(200).json(categories);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar categorias' });
+  }
+};
+
+
+
+// ➕ ADICIONAR ESTA FUNÇÃO:
+export const handleGetCategoryById = async (req: Request, res: Response) => {
+  try {
+    const { id } = idParamSchema.parse(req.params);
+    const category = await getCategoryById(BigInt(id));
+    
+    if (!category) {
+      return res.status(404).json({ error: 'Categoria não encontrada' });
+    }
+    
+    res.status(200).json(category);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ errors: error.issues });
+    }
+    res.status(500).json({ error: 'Erro ao buscar categoria' });
   }
 };
 
